@@ -80,6 +80,10 @@ class DiscreteDistribution(dict):
         for key in self.keys(): 
             totalProb += self.get(key)
 
+
+        if totalProb == 0:
+            totalProb = 1
+
         for key in self.keys():
             self[key] = self.get(key) / totalProb
 
@@ -302,9 +306,16 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        pacmanPosition = gameState.getPacmanPosition()
+        jailPosition = self.getJailPosition()
+        
+        for p in self.allPositions:
+            self.beliefs[p] *= self.getObservationProb(observation, pacmanPosition, p, jailPosition)
 
         self.beliefs.normalize()
+        
+
+
 
     def elapseTime(self, gameState):
         """
