@@ -144,3 +144,84 @@ class GreedyBustersAgent(BustersAgent):
             [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
              if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
+
+        # compute most likley position 
+        bestPositions = []
+        # print("Distance Dict: ", self.distancer._distances)
+        # assert(False)
+
+        for i in self.inferenceModules:
+                    
+            for livingGhost in livingGhostPositionDistributions:
+                
+                if livingGhost == i.getBeliefDistribution(): 
+                    
+                    i.elapseTime(gameState)
+                    elapse = i.getBeliefDistribution()
+
+                    assert(elapse is not None)
+                    
+                    # best position using elapse at time t
+                    bestElapse = max(elapse, key=lambda k : elapse[k])
+                    
+                    observation = self.distancer.getDistance(pacmanPosition, bestElapse)
+                    if observation == 1000000000:
+                        continue
+                    i.observeUpdate(observation, gameState)
+                    observation = i.getBeliefDistribution()
+
+                    assert(observation is not None)
+
+                    # best position using observation data 
+                    bestObserve = max(observation, key=lambda k : observation[k])
+                    bestPositions.append(bestObserve)
+        closestPosition = None
+        closestDistance = None
+        
+        # get closet ghost position 
+        for position in bestPositions:
+            if closestPosition is None:
+                closestPosition = position
+                closestDistance = self.distancer.getDistance(pacmanPosition, position)
+            else:
+                newDistance = self.distancer.getDistance(pacmanPosition, position)
+                if newDistance < closestDistance:
+                    closestPosition = position
+                    closestDistance = newDistance
+        
+        if closestPosition is None:
+            return "Stop"
+        bestAction = None
+        bestDistance = None
+        for action in legal:
+            successor = Actions.getSuccessor(pacmanPosition, action)
+            if bestAction is None:
+                bestAction = action
+                bestDistance = self.distancer.getDistance(successor, closestPosition)
+            else:
+                nextDistance = self.distancer.getDistance(successor, closestPosition)
+
+                if nextDistance <= bestDistance:
+                    bestDistance = nextDistance
+                    bestAction = action
+        return bestAction
+
+                    
+
+            
+        #     for inference in self.inferenceModules: 
+
+        #         elapse = inference.elapseTime(gameState)
+        #         if elapse != None:
+        #             bestElapsePosition = max(elapse, key=lambda k: elapse[k])
+
+
+        #             observation = self.distancer.getDistance(pacmanPosition, bestElapsePosition)
+        #             observe = inference.observeUpdate(observation, gameState)
+
+        #             bestObservePosition.append(max(observe, key=lambda k: observe[k]))
+        
+        # closetPosition = min(bestObservePosition)
+
+            # beliefs = self.inferenceModules[self.inferenceModules.index("ExactInference")].getBeliefDistribution()
+            # self.ghostBeliefs
